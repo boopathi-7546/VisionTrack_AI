@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VisionTrack AI — Smart Object Detection & Tracking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+<!-- ══ Particle Canvas ════════════════════════════════════════════════════ -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- ══ Loading Screen ════════════════════════════════════════════════════ -->
+<div id="loadingScreen">
+  <div class="loader-core">
+    <div class="loader-ring"></div>
+    <div class="loader-ring r2"></div>
+    <div class="loader-ring r3"></div>
+    <div class="loader-icon">
+      <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 10 L25 10 L25 15 L15 15 L15 25 L10 25 Z" stroke="currentColor" stroke-width="2"/>
+        <path d="M50 10 L35 10 L35 15 L45 15 L45 25 L50 25 Z" stroke="currentColor" stroke-width="2"/>
+        <path d="M10 50 L25 50 L25 45 L15 45 L15 35 L10 35 Z" stroke="currentColor" stroke-width="2"/>
+        <path d="M50 50 L35 50 L35 45 L45 45 L45 35 L50 35 Z" stroke="currentColor" stroke-width="2"/>
+        <circle cx="30" cy="30" r="8" stroke="currentColor" stroke-width="2"/>
+        <circle cx="30" cy="30" r="3" fill="currentColor"/>
+      </svg>
+    </div>
+    <p class="loader-text">INITIALIZING VISIONTRACK AI</p>
+    <div class="loader-bar"><div class="loader-progress"></div></div>
+  </div>
+</div>
+
+<!-- ══ Sidebar Navigation ════════════════════════════════════════════════ -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 5 L15 5 L15 9 L9 9 L9 15 L5 15 Z" stroke="#00f5d4" stroke-width="1.5"/>
+        <path d="M35 5 L25 5 L25 9 L31 9 L31 15 L35 15 Z" stroke="#00f5d4" stroke-width="1.5"/>
+        <path d="M5 35 L15 35 L15 31 L9 31 L9 25 L5 25 Z" stroke="#00f5d4" stroke-width="1.5"/>
+        <path d="M35 35 L25 35 L25 31 L31 31 L31 25 L35 25 Z" stroke="#00f5d4" stroke-width="1.5"/>
+        <circle cx="20" cy="20" r="6" stroke="#00f5d4" stroke-width="1.5"/>
+        <circle cx="20" cy="20" r="2" fill="#00f5d4"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-title">VisionTrack</div>
+      <div class="logo-sub">AI SYSTEM v2.0</div>
+    </div>
+  </div>
+
+  <div class="sidebar-status">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">OFFLINE</span>
+  </div>
+
+  <ul class="nav-links">
+    <li><a href="#" class="nav-link active" data-section="dashboard">
+      <span class="nav-icon">⬡</span> Dashboard
+    </a></li>
+    <li><a href="#" class="nav-link" data-section="analytics">
+      <span class="nav-icon">◈</span> Analytics
+    </a></li>
+    <li><a href="#" class="nav-link" data-section="tracking">
+      <span class="nav-icon">◎</span> Tracking
+    </a></li>
+    <li><a href="#" class="nav-link" data-section="zones">
+      <span class="nav-icon">⬠</span> Zones
+    </a></li>
+    <li><a href="#" class="nav-link" data-section="snapshots">
+      <span class="nav-icon">◷</span> Snapshots
+    </a></li>
+    <li><a href="#" class="nav-link" data-section="reports">
+      <span class="nav-icon">◫</span> Reports
+    </a></li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <div class="sys-info">
+      <div class="sys-row"><span>MODEL</span><span>YOLOv8n</span></div>
+      <div class="sys-row"><span>TRACKER</span><span>DeepSORT</span></div>
+      <div class="sys-row"><span>BACKEND</span><span>Flask</span></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ Main Content ══════════════════════════════════════════════════════ -->
+<main id="mainContent">
+
+  <!-- ── Hero (when no stream active) ─────────────────────────────────── -->
+  <section id="heroSection">
+    <div class="hero-inner">
+      <div class="hero-badge">ADVANCED AI SURVEILLANCE</div>
+      <h1 class="hero-title">
+        See Everything.<br />
+        <span class="gradient-text">Track Anything.</span>
+      </h1>
+      <p class="hero-desc">
+        Real-time multi-object detection and tracking powered by YOLOv8 + DeepSORT.
+        Analyze webcam feeds or uploaded footage with sub-second latency.
+      </p>
+      <div class="hero-features">
+        <div class="feat-pill">⚡ YOLOv8 Detection</div>
+        <div class="feat-pill">🎯 DeepSORT Tracking</div>
+        <div class="feat-pill">🔥 Live Heatmaps</div>
+        <div class="feat-pill">📊 Smart Analytics</div>
+        <div class="feat-pill">🚨 Zone Alerts</div>
+      </div>
+      <div class="hero-cta">
+        <button class="btn-primary" onclick="startWebcam()">
+          <span>◉</span> Start Webcam
+        </button>
+        <button class="btn-secondary" onclick="document.getElementById('videoInput').click()">
+          <span>▲</span> Upload Video
+        </button>
+        <input type="file" id="videoInput" accept="video/*" style="display:none" onchange="uploadVideo(event)" />
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="scan-ring r1"></div>
+      <div class="scan-ring r2"></div>
+      <div class="scan-ring r3"></div>
+      <div class="scan-center">AI</div>
+    </div>
+  </section>
+
+  <!-- ── Dashboard Section ─────────────────────────────────────────────── -->
+  <section id="dashboardSection" class="app-section hidden">
+
+    <!-- Stream Controls -->
+    <div class="control-bar">
+      <div class="control-left">
+        <button class="btn-sm btn-cyan" onclick="startWebcam()">◉ Webcam</button>
+        <button class="btn-sm btn-purple" onclick="document.getElementById('videoInput2').click()">▲ Upload</button>
+        <input type="file" id="videoInput2" accept="video/*" style="display:none" onchange="uploadVideo(event)" />
+        <button class="btn-sm btn-red" onclick="stopStream()">■ Stop</button>
+        <button class="btn-sm btn-outline" onclick="resetSession()">↺ Reset</button>
+      </div>
+      <div class="control-right">
+        <label class="toggle-label">
+          Trails
+          <div class="toggle" id="trailsToggle" onclick="toggleTrails()"><div class="toggle-knob"></div></div>
+        </label>
+        <label class="toggle-label">
+          Heatmap
+          <div class="toggle" id="heatmapToggle" onclick="toggleHeatmap()"><div class="toggle-knob"></div></div>
+        </label>
+        <label class="toggle-label">
+          <span>Confidence</span>
+          <input type="range" id="confSlider" min="10" max="90" value="45"
+                 oninput="updateConf(this.value)" class="slider" />
+          <span id="confVal">45%</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Main grid: stream + stat cards -->
+    <div class="dash-grid">
+
+      <!-- Video Stream -->
+      <div class="stream-panel glass-card">
+        <div class="card-header">
+          <span class="card-title">◉ LIVE FEED</span>
+          <div class="stream-badges">
+            <span class="badge badge-green" id="sourceBadge">NO SOURCE</span>
+            <span class="badge badge-cyan" id="fpsBadge">0 FPS</span>
+          </div>
+        </div>
+        <div class="stream-wrapper">
+          <img id="streamImg" src="/video_feed" alt="Live Stream" class="stream-img" />
+          <div class="stream-overlay" id="streamOverlay">
+            <div class="overlay-icon">⬡</div>
+            <p>No active stream — start webcam or upload a video</p>
+          </div>
+          <!-- Drop zone -->
+          <div id="dropZone" class="drop-zone">
+            <div class="drop-inner">
+              <div class="drop-icon">▲</div>
+              <p>Drop video file here</p>
+            </div>
+          </div>
+        </div>
+        <div class="stream-footer">
+          <button class="btn-icon" onclick="takeSnapshot()" title="Snapshot">📷</button>
+          <button class="btn-icon" onclick="setCountingLine()" title="Counting Line">⟶</button>
+          <span id="inbound-label" class="count-label">IN: <b id="inboundCount">0</b></span>
+          <span id="outbound-label" class="count-label">OUT: <b id="outboundCount">0</b></span>
+        </div>
+      </div>
+
+      <!-- Stat Cards column -->
+      <div class="stats-column">
+        <div class="stat-card glass-card">
+          <div class="stat-icon cyan">⬡</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Total Detections</div>
+          </div>
+          <div class="stat-glow cyan"></div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon purple">◎</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statActive">0</div>
+            <div class="stat-label">Active Tracks</div>
+          </div>
+          <div class="stat-glow purple"></div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon green">◈</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statMostFreq">—</div>
+            <div class="stat-label">Most Frequent</div>
+          </div>
+          <div class="stat-glow green"></div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon orange">◷</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statAccuracy">0%</div>
+            <div class="stat-label">Avg Confidence</div>
+          </div>
+          <div class="stat-glow orange"></div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon pink">⚡</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statFPS">0</div>
+            <div class="stat-label">Frames / sec</div>
+          </div>
+          <div class="stat-glow pink"></div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon blue">◫</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statSession">0s</div>
+            <div class="stat-label">Session Time</div>
+          </div>
+          <div class="stat-glow blue"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Object Label Bars -->
+    <div class="glass-card label-bars-card">
+      <div class="card-header"><span class="card-title">◈ OBJECT FREQUENCY</span></div>
+      <div id="labelBars" class="label-bars"></div>
+    </div>
+
+  </section>
+
+  <!-- ── Analytics Section ─────────────────────────────────────────────── -->
+  <section id="analyticsSection" class="app-section hidden">
+    <div class="section-title">◈ ANALYTICS DASHBOARD</div>
+    <div class="analytics-grid">
+      <div class="glass-card big-stat-card">
+        <div class="big-stat-val" id="anTotal">0</div>
+        <div class="big-stat-lbl">Total Detections This Session</div>
+      </div>
+      <div class="glass-card big-stat-card">
+        <div class="big-stat-val" id="anFrames">0</div>
+        <div class="big-stat-lbl">Frames Processed</div>
+      </div>
+      <div class="glass-card big-stat-card">
+        <div class="big-stat-val" id="anFPS">0</div>
+        <div class="big-stat-lbl">Current FPS</div>
+      </div>
+      <div class="glass-card big-stat-card">
+        <div class="big-stat-val" id="anConf">0%</div>
+        <div class="big-stat-lbl">Avg Detection Confidence</div>
+      </div>
+    </div>
+    <div class="glass-card" style="margin-top:1.5rem;padding:1.5rem;">
+      <div class="card-header"><span class="card-title">◎ DETECTION BREAKDOWN</span></div>
+      <div id="analyticsLabelBars" class="label-bars" style="margin-top:1rem;"></div>
+    </div>
+  </section>
+
+  <!-- ── Tracking Section ──────────────────────────────────────────────── -->
+  <section id="trackingSection" class="app-section hidden">
+    <div class="section-title">◎ ACTIVE TRACK TABLE</div>
+    <div class="glass-card" style="padding:1.5rem;">
+      <table class="track-table">
+        <thead>
+          <tr>
+            <th>Track ID</th>
+            <th>Label</th>
+            <th>Confidence</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="trackTableBody">
+          <tr><td colspan="4" style="text-align:center;color:var(--muted)">No active tracks</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Zones Section ─────────────────────────────────────────────────── -->
+  <section id="zonesSection" class="app-section hidden">
+    <div class="section-title">⬠ ZONE MONITORING</div>
+    <div class="glass-card zone-card">
+      <p class="zone-info">Define restricted zones with polygon coordinates. An alert fires when any tracked object enters a zone.</p>
+      <div class="zone-form">
+        <input type="text" id="zoneName" placeholder="Zone name (e.g. Restricted Area)" class="input-field" />
+        <textarea id="zonePolygon" rows="3" placeholder='Polygon JSON: [[100,100],[400,100],[400,300],[100,300]]' class="input-field"></textarea>
+        <button class="btn-primary" onclick="addZone()">+ Add Zone</button>
+        <button class="btn-secondary" onclick="clearZones()">✕ Clear All</button>
+      </div>
+      <div id="zoneList" class="zone-list"></div>
+    </div>
+    <div class="glass-card zone-card" style="margin-top:1.5rem;">
+      <div class="card-header"><span class="card-title">⟶ COUNTING LINE</span></div>
+      <p class="zone-info">Draw a horizontal counting line across the frame to count objects passing in and out.</p>
+      <div class="zone-form">
+        <div class="inline-inputs">
+          <input type="number" id="lineY" placeholder="Y position (px)" class="input-field" value="360" />
+          <button class="btn-primary" onclick="setCountingLineY()">Set Line</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Snapshots Section ─────────────────────────────────────────────── -->
+  <section id="snapshotsSection" class="app-section hidden">
+    <div class="section-title">◷ CAPTURED SNAPSHOTS</div>
+    <div class="snap-toolbar">
+      <button class="btn-primary" onclick="takeSnapshot()">📷 Capture Now</button>
+      <button class="btn-secondary" onclick="loadSnapshots()">↺ Refresh</button>
+    </div>
+    <div id="snapshotGrid" class="snapshot-grid">
+      <div class="snap-empty">No snapshots yet — start a stream and capture a frame.</div>
+    </div>
+  </section>
+
+  <!-- ── Reports Section ───────────────────────────────────────────────── -->
+  <section id="reportsSection" class="app-section hidden">
+    <div class="section-title">◫ DETECTION REPORTS</div>
+    <div class="reports-grid">
+      <div class="glass-card report-card">
+        <div class="report-icon">📊</div>
+        <div class="report-title">CSV Report</div>
+        <p class="report-desc">Export all detection logs (timestamp, label, confidence, bounding box) to a CSV file.</p>
+        <button class="btn-primary" onclick="exportCSV()">Export CSV</button>
+        <div id="csvLink" class="report-link"></div>
+      </div>
+      <div class="glass-card report-card">
+        <div class="report-icon">🗂</div>
+        <div class="report-title">JSON Report</div>
+        <p class="report-desc">Export the full session — label frequency, frame count, accuracy stats — as JSON.</p>
+        <button class="btn-primary" onclick="exportJSON()">Export JSON</button>
+        <div id="jsonLink" class="report-link"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══ Toast Notification ═══════════════════════════════════════════════ -->
+<div id="toast" class="toast"></div>
+
+<!-- ══ Alert Banner ══════════════════════════════════════════════════════ -->
+<div id="zoneBanner" class="zone-banner hidden"></div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
